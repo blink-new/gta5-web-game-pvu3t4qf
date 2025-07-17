@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* GTA 5 Dark Theme Colors */
+    --background: 0 0% 4%; /* #0a0a0a */
+    --foreground: 120 100% 25%; /* #00ff41 */
+    --card: 0 0% 10%; /* #1a1a1a */
+    --card-foreground: 120 100% 25%; /* #00ff41 */
+    --popover: 0 0% 4%; /* #0a0a0a */
+    --popover-foreground: 120 100% 25%; /* #00ff41 */
+    --primary: 0 0% 10%; /* #1a1a1a */
+    --primary-foreground: 120 100% 25%; /* #00ff41 */
+    --secondary: 0 0% 15%; /* #262626 */
+    --secondary-foreground: 120 100% 25%; /* #00ff41 */
+    --muted: 0 0% 8%; /* #141414 */
+    --muted-foreground: 0 0% 60%; /* #999999 */
+    --accent: 120 100% 25%; /* #00ff41 */
+    --accent-foreground: 0 0% 0%; /* #000000 */
+    --destructive: 0 84% 60%; /* #ff4444 */
+    --destructive-foreground: 0 0% 98%; /* #fafafa */
+    --border: 0 0% 20%; /* #333333 */
+    --input: 0 0% 15%; /* #262626 */
+    --ring: 120 100% 25%; /* #00ff41 */
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-rajdhani;
+
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    user-select: none;
+  }
+  
+  html {
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  #root {
+    height: 100vh;
+    width: 100vw;
+  }
+}
+
+@layer components {
+  .gta-title {
+    @apply font-orbitron font-black text-accent;
+
+    text-shadow: 0 0 10px rgb(0 255 65 / 50%);
+  }
+  
+  .gta-text {
+    @apply font-rajdhani text-foreground;
+  }
+  
+  .gta-button {
+    @apply bg-primary border-2 border-accent text-accent font-rajdhani font-semibold;
+    @apply hover:bg-accent hover:text-primary transition-all duration-200;
+    @apply shadow-lg hover:shadow-accent/20;
+  }
+  
+  .gta-hud {
+    @apply bg-black/80 border border-accent/30 backdrop-blur-sm;
+    @apply text-accent font-rajdhani;
+  }
+  
+  .game-world {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+    position: relative;
+    overflow: hidden;
+  }
+}
