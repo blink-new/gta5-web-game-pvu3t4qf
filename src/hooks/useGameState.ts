@@ -167,6 +167,63 @@ export const useGameState = () => {
     }));
   }, []);
 
+  const damageNPC = useCallback((npcId: string, damage: number) => {
+    setGameState(prev => ({
+      ...prev,
+      npcs: prev.npcs.map(npc => 
+        npc.id === npcId 
+          ? { ...npc, health: Math.max(0, npc.health - damage) }
+          : npc
+      )
+    }));
+  }, []);
+
+  const damagePlayer = useCallback((damage: number) => {
+    setGameState(prev => ({
+      ...prev,
+      player: {
+        ...prev.player,
+        health: Math.max(0, prev.player.health - damage)
+      }
+    }));
+  }, []);
+
+  const healPlayer = useCallback((amount: number) => {
+    setGameState(prev => ({
+      ...prev,
+      player: {
+        ...prev.player,
+        health: Math.min(100, prev.player.health + amount)
+      }
+    }));
+  }, []);
+
+  const completeMission = useCallback((missionId: string, reward: number) => {
+    setGameState(prev => ({
+      ...prev,
+      missions: prev.missions.map(mission =>
+        mission.id === missionId
+          ? { ...mission, completed: true, active: false }
+          : mission
+      ),
+      player: {
+        ...prev.player,
+        money: prev.player.money + reward
+      }
+    }));
+  }, []);
+
+  const startMission = useCallback((missionId: string) => {
+    setGameState(prev => ({
+      ...prev,
+      missions: prev.missions.map(mission =>
+        mission.id === missionId
+          ? { ...mission, active: true }
+          : { ...mission, active: false }
+      )
+    }));
+  }, []);
+
   // Game loop for time progression
   useEffect(() => {
     if (gameState.isPaused) return;
@@ -189,6 +246,11 @@ export const useGameState = () => {
     togglePause,
     addMoney,
     increaseWantedLevel,
-    decreaseWantedLevel
+    decreaseWantedLevel,
+    damageNPC,
+    damagePlayer,
+    healPlayer,
+    completeMission,
+    startMission
   };
 };

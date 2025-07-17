@@ -7,6 +7,10 @@ import { HUD } from './HUD';
 import { MiniMap } from './MiniMap';
 import { Controls } from './Controls';
 import { Game3D } from './Game3D';
+import { MissionSystem } from './MissionSystem';
+import { CombatSystem } from './CombatSystem';
+import { BuildingInteraction } from './BuildingInteraction';
+import { NotificationSystem, useNotifications, createGameNotifications } from './NotificationSystem';
 
 export const GameWorld: React.FC = () => {
   const {
@@ -16,10 +20,18 @@ export const GameWorld: React.FC = () => {
     exitVehicle,
     togglePause,
     addMoney,
-    increaseWantedLevel
+    increaseWantedLevel,
+    decreaseWantedLevel,
+    damageNPC,
+    damagePlayer,
+    healPlayer,
+    completeMission,
+    startMission
   } = useGameState();
 
   const [is3DMode, setIs3DMode] = useState(false);
+  const { notifications, addNotification, removeNotification } = useNotifications();
+  const gameNotifications = createGameNotifications(addNotification);
 
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
     if (gameState.isPaused) return;
@@ -52,7 +64,7 @@ export const GameWorld: React.FC = () => {
             return distance < 30;
           });
           if (nearbyVehicle) {
-            enterVehicle(nearbyVehicle.id);
+            handleVehicleEnter(nearbyVehicle.id);
           }
         }
         break;
@@ -72,12 +84,52 @@ export const GameWorld: React.FC = () => {
         setIs3DMode(prev => !prev);
         break;
     }
-  }, [gameState, movePlayer, enterVehicle, exitVehicle, togglePause, addMoney, increaseWantedLevel]);
+  }, [gameState, movePlayer, handleVehicleEnter, exitVehicle, togglePause, addMoney, increaseWantedLevel]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [handleKeyPress]);
+
+  // Monitor game events for notifications
+  useEffect(() => {
+    // Check for low health
+    if (gameState.player.health <= 20 && gameState.player.health > 0) {
+      gameNotifications.healthLow();
+    }
+  }, [gameState.player.health, gameNotifications]);
+
+  // Enhanced mission completion with notifications
+  const handleMissionComplete = useCallback((missionId: string, reward: number) => {
+    const mission = gameState.missions.find(m => m.id === missionId);
+    if (mission) {
+      gameNotifications.missionComplete(mission.title, reward);
+    }
+    completeMission(missionId, reward);
+  }, [gameState.missions, gameNotifications, completeMission]);
+
+  // Enhanced wanted level changes with notifications
+  const handleWantedLevelIncrease = useCallback(() => {
+    const newLevel = gameState.player.wantedLevel + 1;
+    increaseWantedLevel();
+    gameNotifications.wantedLevelIncrease(newLevel);
+  }, [gameState.player.wantedLevel, increaseWantedLevel, gameNotifications]);
+
+  const handleWantedLevelDecrease = useCallback(() => {
+    if (gameState.player.wantedLevel === 1) {
+      gameNotifications.wantedLevelCleared();
+    }
+    decreaseWantedLevel();
+  }, [gameState.player.wantedLevel, decreaseWantedLevel, gameNotifications]);
+
+  // Enhanced vehicle interaction with notifications
+  const handleVehicleEnter = useCallback((vehicleId: string) => {
+    const vehicle = gameState.vehicles.find(v => v.id === vehicleId);
+    if (vehicle) {
+      gameNotifications.vehicleEntered(vehicle.type);
+    }
+    enterVehicle(vehicleId);
+  }, [gameState.vehicles, gameNotifications, enterVehicle]);
 
   return (
     <div className="game-world h-screen w-screen relative overflow-hidden">
@@ -163,6 +215,46 @@ export const GameWorld: React.FC = () => {
       )}
       
       <Controls />
+      
+      {/* Notification System */}
+      <NotificationSystem
+        notifications={notifications}
+        onRemove={removeNotification}
+      />
+      
+      {/* Mission System */}
+      <MissionSystem
+        gameState={gameState}
+        onMissionComplete={handleMissionComplete}
+        onMissionStart={startMission}
+      />
+      
+      {/* Combat System */}
+      <CombatSystem
+        gameState={gameState}
+        onNPCDamage={damageNPC}
+        onPlayerDamage={damagePlayer}
+        onWantedLevelChange={handleWantedLevelIncrease}
+      />
+      
+      {/* Building Interaction */}
+      <BuildingInteraction
+        gameState={gameState}
+        onMoneyChange={(amount) => {
+          addMoney(amount);
+          if (amount > 0) {
+            gameNotifications.moneyEarned(amount, 'transaction');
+          }
+        }}
+        onHealthChange={healPlayer}
+        onWantedLevelChange={(change) => {
+          if (change > 0) {
+            handleWantedLevelIncrease();
+          } else {
+            handleWantedLevelDecrease();
+          }
+        }}
+      />
       
       {/* Pause Menu */}
       {gameState.isPaused && (
