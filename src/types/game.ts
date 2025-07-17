@@ -45,12 +45,27 @@ export interface NPC {
   health: number;
 }
 
+export interface Building {
+  id: string;
+  type: 'store' | 'bank' | 'police_station' | 'hospital';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  name: string;
+  interactable: boolean;
+}
+
 export interface GameState {
   player: Player;
   vehicles: Vehicle[];
   npcs: NPC[];
   missions: Mission[];
+  buildings: Building[];
   gameTime: number;
   isPaused: boolean;
   showMiniMap: boolean;
+  missionProgress: { [missionId: string]: number };
+  policeChaseActive: boolean;
+  lastShotTime: number;
 }

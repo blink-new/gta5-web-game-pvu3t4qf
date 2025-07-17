@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useGameState } from '../hooks/useGameState';
 import { Player } from './Player';
 import { Vehicle } from './Vehicle';
@@ -6,6 +6,7 @@ import { NPC } from './NPC';
 import { HUD } from './HUD';
 import { MiniMap } from './MiniMap';
 import { Controls } from './Controls';
+import { Game3D } from './Game3D';
 
 export const GameWorld: React.FC = () => {
   const {
@@ -17,6 +18,8 @@ export const GameWorld: React.FC = () => {
     addMoney,
     increaseWantedLevel
   } = useGameState();
+
+  const [is3DMode, setIs3DMode] = useState(false);
 
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
     if (gameState.isPaused) return;
@@ -64,6 +67,10 @@ export const GameWorld: React.FC = () => {
         // Test: Increase wanted level
         increaseWantedLevel();
         break;
+      case 'v':
+        // Toggle 3D/2D view
+        setIs3DMode(prev => !prev);
+        break;
     }
   }, [gameState, movePlayer, enterVehicle, exitVehicle, togglePause, addMoney, increaseWantedLevel]);
 
@@ -74,46 +81,55 @@ export const GameWorld: React.FC = () => {
 
   return (
     <div className="game-world h-screen w-screen relative overflow-hidden">
-      {/* Game Canvas */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-800 via-gray-900 to-black">
-        {/* City Grid Background */}
-        <div 
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(0,255,65,0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(0,255,65,0.1) 1px, transparent 1px)
-            `,
-            backgroundSize: '50px 50px'
-          }}
+      {/* 3D Mode */}
+      {is3DMode ? (
+        <Game3D 
+          gameState={gameState}
+          onPlayerMove={movePlayer}
+          onVehicleInteraction={enterVehicle}
         />
-        
-        {/* Buildings/Environment */}
-        <div className="absolute top-20 left-20 w-32 h-24 bg-gray-700 border border-accent/30" />
-        <div className="absolute top-40 right-32 w-28 h-32 bg-gray-600 border border-accent/30" />
-        <div className="absolute bottom-32 left-40 w-36 h-20 bg-gray-800 border border-accent/30" />
-        <div className="absolute bottom-20 right-20 w-24 h-28 bg-gray-700 border border-accent/30" />
-        
-        {/* Roads */}
-        <div className="absolute top-0 left-1/2 w-2 h-full bg-yellow-400 opacity-50" />
-        <div className="absolute left-0 top-1/2 w-full h-2 bg-yellow-400 opacity-50" />
-        
-        {/* Vehicles */}
-        {gameState.vehicles.map(vehicle => (
-          <Vehicle key={vehicle.id} vehicle={vehicle} />
-        ))}
-        
-        {/* NPCs */}
-        {gameState.npcs.map(npc => (
-          <NPC key={npc.id} npc={npc} />
-        ))}
-        
-        {/* Player */}
-        <Player 
-          player={gameState.player} 
-          isInVehicle={!!gameState.player.currentVehicle}
-        />
-      </div>
+      ) : (
+        /* 2D Mode - Game Canvas */
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-800 via-gray-900 to-black">
+          {/* City Grid Background */}
+          <div 
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: `
+                linear-gradient(rgba(0,255,65,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,65,0.1) 1px, transparent 1px)
+              `,
+              backgroundSize: '50px 50px'
+            }}
+          />
+          
+          {/* Buildings/Environment */}
+          <div className="absolute top-20 left-20 w-32 h-24 bg-gray-700 border border-accent/30" />
+          <div className="absolute top-40 right-32 w-28 h-32 bg-gray-600 border border-accent/30" />
+          <div className="absolute bottom-32 left-40 w-36 h-20 bg-gray-800 border border-accent/30" />
+          <div className="absolute bottom-20 right-20 w-24 h-28 bg-gray-700 border border-accent/30" />
+          
+          {/* Roads */}
+          <div className="absolute top-0 left-1/2 w-2 h-full bg-yellow-400 opacity-50" />
+          <div className="absolute left-0 top-1/2 w-full h-2 bg-yellow-400 opacity-50" />
+          
+          {/* Vehicles */}
+          {gameState.vehicles.map(vehicle => (
+            <Vehicle key={vehicle.id} vehicle={vehicle} />
+          ))}
+          
+          {/* NPCs */}
+          {gameState.npcs.map(npc => (
+            <NPC key={npc.id} npc={npc} />
+          ))}
+          
+          {/* Player */}
+          <Player 
+            player={gameState.player} 
+            isInVehicle={!!gameState.player.currentVehicle}
+          />
+        </div>
+      )}
 
       {/* UI Overlay */}
       <HUD 
@@ -122,6 +138,21 @@ export const GameWorld: React.FC = () => {
         isPaused={gameState.isPaused}
         currentMission={gameState.missions.find(m => m.active)}
       />
+      
+      {/* 3D Mode Indicator */}
+      <div className="absolute top-4 right-4 z-50">
+        <div className="gta-hud px-4 py-2 rounded-lg">
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${is3DMode ? 'bg-accent' : 'bg-gray-500'}`} />
+            <span className="font-rajdhani text-sm font-bold">
+              {is3DMode ? '3D MODE' : '2D MODE'}
+            </span>
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            Press V to toggle
+          </div>
+        </div>
+      </div>
       
       {gameState.showMiniMap && (
         <MiniMap 

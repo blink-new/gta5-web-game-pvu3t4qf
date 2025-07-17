@@ -61,6 +61,10 @@ export const Controls: React.FC = () => {
                     <span>Wanted Level (Test):</span>
                     <span className="text-accent">T</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span>Toggle 3D/2D View:</span>
+                    <span className="text-accent">V</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -73,6 +77,7 @@ export const Controls: React.FC = () => {
                 <li>• Watch your health and wanted level</li>
                 <li>• Complete missions to earn money</li>
                 <li>• Use the minimap to navigate</li>
+                <li>• Press V to switch between 2D and 3D views</li>
               </ul>
             </div>
           </div>
